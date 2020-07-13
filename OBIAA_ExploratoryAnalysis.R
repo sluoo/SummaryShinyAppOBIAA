@@ -32,18 +32,22 @@ tbl <- is.na.data.frame(dta1)
 sumNA <- apply(tbl,2,sum)
 print(sumNA)
 
-View(select(dta1,`Business Name`,`Annual Revenue`,
-            `Industry`,`Staff`,`Square Feet`)
-     %>% filter(Industry == "Medical Services")
-     %>% filter(`Annual Revenue` == "Up to $500,000")
-     %>% filter(`Square Feet` == "1001 - 2000 Square Ft"))
+View(select(dta1,`Business Name`,Industry)
+     %>% filter(is.na(Industry)))
 
-#Remove Castle Maker and predicted number of staff for Lacroix (not enough data)
+#Predict staff for lacroix 
 
-#Seperate by Industry 
-retailTbl <- (dta1
-              %>% filter())
+#Possibly subcategorized food & beverage?? 
+FoodBevTbl <- (dta1
+              %>% filter(Industry == "Food & Beverage" | Industry == "Restaurant"))
 
+RestTbl <- (dta1
+            %>% filter(Industry=="Restaurant"))
+
+RetailTbl <- (dta1
+            %>% filter(Industry=="Retail"))
+
+write_csv(FoodBevTbl,path="FoodBevTbl.csv")
 
 
 
