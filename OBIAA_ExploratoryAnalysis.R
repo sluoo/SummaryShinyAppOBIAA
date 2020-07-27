@@ -1,11 +1,12 @@
 library(tidyverse)
 library(tibble)
 library(plotly)
+library(sunburstR)
 
 #Goal: Create shiny dashboards based on industry/space usage/staffing/revenue
 
 ### Raw data
-dta <- DTG_Approved_Grants_Sorted_by_Date
+dta <- DTG_All_Applicants
 
 
 ####Clean Raw Data
@@ -44,57 +45,27 @@ print(sumNA)
 
 ###Question 1###
 
-##How are funds potentially distributed/proportion for each area? 
-totalAmount <- sum(dta1$Currency)
-totalRows <- nrow(dta1)
+#Use of Funds by Industry 
+funds_grp <- (dta1 %>% 
+                group_by(Industry)
+              %>% summarise(`Digital Marketing`=sum(DigitalMarket),`Website`=sum(Website),
+                            `Software`=sum(Software),`Digital Training`=sum(DigitalTrain),
+                            `Hardware`=sum(Hardware))
+              %>% gather(key,value,`Digital Marketing`:Hardware))
 
-#Number of businesses who requested funding for each area 
-nDM = length(which(dta1$DigitalMarket != 0))
-sumDM = sum(dta1$DigitalMarket)
+dta2 <-data.frame(funds_grp
+        %>% unite(seq,Industry:key,sep = "-"))
 
-nDT = length(which(dta1$DigitalTrain != 0))
-sumDT = sum(dta1$DigitalTrain)
+sunplot1 <- print(sund2b(dta2,
+                         rootLabel = "Industry",
+                         colors = htmlwidgets::JS("d3.scaleOrdinal(d3.schemeCategory20b)"),
+                         tooltip =  sund2bTooltip(followMouse = TRUE,
+                                                  html = htmlwidgets::JS("function(nodedata, size, percent) {
+  return '<span style=\"font-weight: bold;\">' + nodedata.name + '</span>' + ' ' + size
+}
+    ")
+                         ) 
+))
 
-nWeb = length(which(dta1$Website != 0))
-sumWeb = sum(dta1$Website)
-
-nSoft = length(which(dta1$Software != 0))
-sumSoft = sum(dta1$Software)
-
-nHard = length(which(dta1$Hardware != 0))
-sumHard = sum(dta1$Hardware)
-
-all.n = c(nDM,nDT,nWeb,nSoft,nHard)
-prop = all.n / sum(all.n)
-ymax1 = cumsum(prop)
-ymin1 = c(0,ymax1[1:4])
-sumCol = c(sumDM,sumDT,sumWeb,sumSoft,sumHard)
-
-
-data.donut <- data.frame(
-  Category = c("Digital Marketing", "Digital Training", "Website",
-               "Software", "Hardware"),
-  prop = prop,
-  ymax = ymax1, 
-  ymin = ymin1,
-  sum1 = sumCol
-)
-
-#Compute label/position
-data.donut$label <- paste0(data.donut$Category, "\n Proportion:", round(data.donut$prop,3), 
-                           "\n Total Funding:", "$",data.donut$sum1)/10000)
-
-data.donut$labelPosition <- (data.donut$ymax + data.donut$ymin) / 2
-
-g <- (ggplot(data.donut, aes(ymax=ymax,ymin=ymin,xmax=4,xmin=3,fill=Category))
-       + geom_rect(show.legend = FALSE)
-       + geom_label( x=3.5, aes(y=labelPosition, label=label), size=3) 
-       + coord_polar(theta="y")
-       + theme_void()
-       + scale_fill_brewer(palette = 1))
-
-print(g)
-
-
-
+###Question 2 ###
 
