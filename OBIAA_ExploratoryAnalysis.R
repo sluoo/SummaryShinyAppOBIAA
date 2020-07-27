@@ -57,7 +57,8 @@ dta2 <-data.frame(funds_grp
         %>% unite(seq,Industry:key,sep = "-"))
 
 sunplot1 <- print(sund2b(dta2,
-                         rootLabel = "Industry",
+                         rootLabel = "Total $ Value Issued",
+                         #showLabels = TRUE,
                          colors = htmlwidgets::JS("d3.scaleOrdinal(d3.schemeCategory20b)"),
                          tooltip =  sund2bTooltip(followMouse = TRUE,
                                                   html = htmlwidgets::JS("function(nodedata, size, percent) {
