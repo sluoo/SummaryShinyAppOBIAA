@@ -5,7 +5,7 @@ library(sunburstR)
 
 #Goal: Create shiny dashboards based on industry/space usage/staffing/revenue
 
-### Raw data
+### Raw dataa
 dta <- DTG_All_Applicants
 
 
@@ -27,7 +27,9 @@ dta1 <- (dta %>%
                     DigitalTrain = as.numeric(gsub("[\\$,]","",DigitalTrain)),
                     Website = as.numeric(gsub("[\\$,]","",Website)),
                     Software = as.numeric(gsub("[\\$,]","",Software)),
-                    Hardware = as.numeric(gsub("[\\$,]","",Hardware)))
+                    Hardware = as.numeric(gsub("[\\$,]","",Hardware)),
+                    AnnualRevenue = as.factor(AnnualRevenue),
+                    SquareFt = as.factor(SquareFt))
          %>% filter(Status != "Denied"))
 
 #Add 0 to NA for funding columns 
@@ -69,4 +71,24 @@ sunplot1 <- print(sund2b(dta2,
 ))
 
 ###Question 2 ###
+# Relationship between revenue and number of employees 
+# Relationship between square feet and revenue 
+#Outlier 178?? Dance Studio 
+#Sort ordering of Annual Revenue + Staff 
+plot <- print(ggplot(dta1)
+         + geom_boxplot(aes(x=AnnualRevenue,y=Staff))
+         + facet_grid(.~SquareFt)
+         + coord_flip())
+
+fig <- ggplotly(plot)
+
+fig
+#Ask Kay if these number make sense... 
+#View(filter(dta1,40 < Staff & Staff < 200))
+
+
+
+
+
+
 
