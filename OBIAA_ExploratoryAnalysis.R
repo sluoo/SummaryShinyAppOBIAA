@@ -77,9 +77,12 @@ sunplot1 <- print(sund2b(dta2,
 # Relationship between square feet and revenue 
 #Outlier 178?? Dance Studio 
 #Sort ordering of Annual Revenue + Staff 
+
+#apply log transformation
 plot <- print(ggplot(dta1)
-         + geom_boxplot(aes(x=AnnualRevenue,y=Staff))
+         + geom_boxplot(aes(x=AnnualRevenue,y=log(Staff)))
          + facet_grid(.~SquareFt)
+         #+ scale_y_continuous(trans="log10")
          + coord_flip())
 
 fig <- ggplotly(plot)
