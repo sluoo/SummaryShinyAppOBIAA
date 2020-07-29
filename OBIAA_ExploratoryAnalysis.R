@@ -2,10 +2,12 @@ library(tidyverse)
 library(tibble)
 library(plotly)
 library(sunburstR)
+library(readr)
 
 #Goal: Create shiny dashboards based on industry/space usage/staffing/revenue
 
 ### Raw dataa
+DTG_All_Applicants <- read_csv("DTG-All Applicants.csv")
 dta <- DTG_All_Applicants
 
 
