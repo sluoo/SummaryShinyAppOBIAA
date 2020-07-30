@@ -41,11 +41,31 @@ dta1$Software[c(which(is.na(dta1$Software==TRUE)))] <-0
 dta1$DigitalTrain[c(which(is.na(dta1$DigitalTrain==TRUE)))] <-0
 dta1$Hardware[c(which(is.na(dta1$Hardware==TRUE)))] <-0
 
+#Re-Code and Re-Order AnnualRevenue and SquareFoot
+dta1 <- mutate(dta1, AnnualRevenue=fct_relevel(dta1$AnnualRevenue, c(
+  "Up to $500,000",
+  "$500,000 to $1 Million",
+  "$1 Million to $1.5 Million",
+  "$1.5 Million to $2 Million",
+  "$2 Million to $3 Million",
+  "$3 Million to $5 Million",
+  "$5 Million to $7 Million",
+  "$7 Million to $10 Million",
+  "$15 Million to $20 Million")))
+
+dta1 <- mutate(dta1, SquareFt=fct_relevel(dta1$SquareFt,c(
+  "500 - 1000 Square Ft",
+  "1001 - 2000 Square Ft",
+  "2001 - 3000 Square Ft",
+  "3000 + Square Ft")))
 
 #Check N/A 
 tbl <- is.na.data.frame(dta1)
 sumNA <- apply(tbl,2,sum)
 print(sumNA)
+
+
+
 
 ###Question 1###
 
@@ -80,17 +100,28 @@ sunplot1 <- print(sund2b(dta2,
 
 #apply log transformation
 plot <- print(ggplot(dta1)
-         + geom_boxplot(aes(x=AnnualRevenue,y=log(Staff)))
+         + geom_boxplot(aes(x=AnnualRevenue,y=Staff))
          + facet_grid(.~SquareFt)
-         #+ scale_y_continuous(trans="log10")
-         + coord_flip())
+         + scale_y_continuous(trans="log2")
+         + coord_flip()
+         + theme_minimal()
+         + xlab("Annual Revenue")
+         + ylab("Number of Employees")
+         + ggtitle("Analysis for All Industries"))
 
-fig <- ggplotly(plot)
+f <- ggplotly(plot)
 
-fig
-#Ask Kay if these number make sense... 
-#View(filter(dta1,40 < Staff & Staff < 200))
-
+#Concentrate on more customer centric industries and repeat analysis?? 
+#Note: log Transformation on 
+plot1 <- print(ggplot(filter(dta1,Industry=="Retail"))
+              + geom_boxplot(aes(x=AnnualRevenue,y=Staff))
+              + facet_grid(.~SquareFt)
+              #+ scale_y_continuous(trans="log2")
+              + coord_flip()
+              + theme_minimal()
+              + xlab("Annual Revenue")
+              + ylab("Number of Employees")
+              + ggtitle("Analysis for All Industries"))
 
 
 
