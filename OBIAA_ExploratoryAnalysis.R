@@ -3,6 +3,7 @@ library(tibble)
 library(plotly)
 library(sunburstR)
 library(readr)
+library(plyr)
 
 #Goal: Create shiny dashboards based on industry/space usage/staffing/revenue
 
@@ -53,6 +54,18 @@ dta1 <- mutate(dta1, AnnualRevenue=fct_relevel(dta1$AnnualRevenue, c(
   "$7 Million to $10 Million",
   "$15 Million to $20 Million")))
 
+#Relabel 
+dta1$AnnualRevenue <-mapvalues(dta1$AnnualRevenue,
+                               from=c("Up to $500,000"),
+                               to = c("Up to $500K"))
+
+
+
+mapvalues(x, from = c("beta", "gamma"), to = c("two", "three"))
+
+
+
+
 dta1 <- mutate(dta1, SquareFt=fct_relevel(dta1$SquareFt,c(
   "500 - 1000 Square Ft",
   "1001 - 2000 Square Ft",
@@ -68,8 +81,7 @@ print(sumNA)
 
 
 ###Question 1###
-
-#Use of Funds by Industry 
+#Grouping funding by industry
 funds_grp <- (dta1 %>% 
                 group_by(Industry)
               %>% summarise(`Digital Marketing`=sum(DigitalMarket),`Website`=sum(Website),
@@ -77,10 +89,12 @@ funds_grp <- (dta1 %>%
                             `Hardware`=sum(Hardware))
               %>% gather(key,value,`Digital Marketing`:Hardware))
 
+#Generating sequence for sunburst
 dta2 <-data.frame(funds_grp
         %>% unite(seq,Industry:key,sep = "-"))
 
-sunplot1 <- print(sund2b(dta2,
+#plot
+s2b <- (sund2b(dta2,
                          rootLabel = "Total $ Value Issued",
                          #showLabels = TRUE,
                          colors = htmlwidgets::JS("d3.scaleOrdinal(d3.schemeCategory20b)"),
@@ -92,6 +106,14 @@ sunplot1 <- print(sund2b(dta2,
                          ) 
 ))
 
+tbl <- (dta1 %>% 
+          group_by(Industry)
+        %>% summarise(`Digital Marketing`=sum(DigitalMarket),`Website`=sum(Website),
+                      `Software`=sum(Software),`Digital Training`=sum(DigitalTrain),
+                      `Hardware`=sum(Hardware)))
+
+tbl1 <- datatable(tbl)
+
 ###Question 2 ###
 # Relationship between revenue and number of employees 
 # Relationship between square feet and revenue 
@@ -102,7 +124,7 @@ sunplot1 <- print(sund2b(dta2,
 plot <- print(ggplot(dta1)
          + geom_boxplot(aes(x=AnnualRevenue,y=Staff))
          + facet_grid(.~SquareFt)
-         + scale_y_continuous(trans="log2")
+         + scale_y_log10()
          + coord_flip()
          + theme_minimal()
          + xlab("Annual Revenue")
@@ -113,15 +135,25 @@ f <- ggplotly(plot)
 
 #Concentrate on more customer centric industries and repeat analysis?? 
 #Note: log Transformation on 
-plot1 <- print(ggplot(filter(dta1,Industry=="Retail"))
+plot1 <- print(ggplot(filter(dta1,Industry==input$))
               + geom_boxplot(aes(x=AnnualRevenue,y=Staff))
               + facet_grid(.~SquareFt)
-              #+ scale_y_continuous(trans="log2")
+               scale_y_log10()
               + coord_flip()
               + theme_minimal()
               + xlab("Annual Revenue")
               + ylab("Number of Employees")
               + ggtitle("Analysis for All Industries"))
+g <- ggplotly(plot)
+
+
+
+copydta1 <- dta1 
+copydta1$SquareFt <- mapvalues(
+  copydta1$SquareFt, from = c("500 - 1000 Square Ft","1001 - 2000 Square Ft"),
+  to = c("500-1000 SqFt","1001-2000 SqFt")
+)
+
 
 
 
