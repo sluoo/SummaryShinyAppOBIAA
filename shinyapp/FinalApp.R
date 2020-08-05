@@ -3,8 +3,10 @@ library(DT)
 library(shinythemes)
 library(ggplot2)
 library(tidyverse)
+library(tibble)
 library(readr)
 library(sunburstR)
+library(plotly)
 
 ### Raw data
 DTG_All_Applicants <- read_csv("~/Documents/OBIAA_Summary/DTG-All Applicants.csv")
@@ -39,6 +41,47 @@ dta1$Website[c(which(is.na(dta1$Website==TRUE)))] <-0
 dta1$Software[c(which(is.na(dta1$Software==TRUE)))] <-0
 dta1$DigitalTrain[c(which(is.na(dta1$DigitalTrain==TRUE)))] <-0
 dta1$Hardware[c(which(is.na(dta1$Hardware==TRUE)))] <-0
+
+#Re-Code and Re-Order AnnualRevenue and SquareFoot
+dta1 <- mutate(dta1, AnnualRevenue=fct_relevel(dta1$AnnualRevenue, c(
+  "Up to $500,000",
+  "$500,000 to $1 Million",
+  "$1 Million to $1.5 Million",
+  "$1.5 Million to $2 Million",
+  "$2 Million to $3 Million",
+  "$3 Million to $5 Million",
+  "$5 Million to $7 Million",
+  "$7 Million to $10 Million",
+  "$15 Million to $20 Million")))
+
+dta1 <- mutate(dta1, SquareFt=fct_relevel(dta1$SquareFt,c(
+  "500 - 1000 Square Ft",
+  "1001 - 2000 Square Ft",
+  "2001 - 3000 Square Ft",
+  "3000 + Square Ft")))
+
+##Relabel
+#Relabel 
+dta1$AnnualRevenue <-mapvalues(dta1$AnnualRevenue,
+                               from=c("Up to $500,000",
+                                      "$500,000 to $1 Million",
+                                      "$1 Million to $1.5 Million",
+                                      "$1.5 Million to $2 Million",
+                                      "$2 Million to $3 Million",
+                                      "$3 Million to $5 Million",
+                                      "$5 Million to $7 Million",
+                                      "$7 Million to $10 Million",
+                                      "$15 Million to $20 Million"),
+                               to = c("Up to $500K",
+                                      "$500K to $1M",
+                                      "$1M to $1.5M",
+                                      "$1.5M to $2M",
+                                      "$2M to $3M",
+                                      "$3M to $5M",
+                                      "$5M to $7M",
+                                      "$7M to $10M",
+                                      "$15M to $20M"))
+
 
 ###Sunburst Plot 
 ###Grouping funding by industry
@@ -80,7 +123,6 @@ ui <- fluidPage(
   theme=shinytheme("simplex"), #theme
   titlePanel("OBIAA Summary Shiny Application"), #title
   tabsetPanel(
-    
     tabPanel("Basic Summary",
              HTML(#adding text 
                paste(
@@ -104,7 +146,6 @@ ui <- fluidPage(
     #Add boxplot
     fluidRow(
     headerPanel("Distribution of Staffing by Revenue and Square Footage"),
-    plotOutput("boxplot"),
     column(3,
       selectInput("selectInput",
                   h4("Please select industry for analysis:"),
@@ -129,16 +170,16 @@ ui <- fluidPage(
                                  selected = "All")#checkboxGroupInput  
            
            )
+    ),
+    fluidRow(
+      column(11.10,offset = 0.75,
+        plotlyOutput("boxplot"))
+    ),
+    fluidRow(
+    numericInput("num","Convert Log Scale to Linear Scale:",value = 0),
+    verbatimTextOutput("num")
     )
   )#TabPanel3
-    
-    
-    
-    
-
-    
-    
-    
     )#tabsetPanel
 
   
@@ -158,14 +199,35 @@ server <- function(input,output){
   })
   
   #Adding Boxplots 
+  output$boxplot <- renderPlotly(
+    if(input$selectInput=="All"){
+      (ggplotly(ggplot(dta1)
+       + geom_boxplot(aes(x=AnnualRevenue,y=Staff))
+       + facet_grid(.~SquareFt)
+       + scale_y_log10()
+       + coord_flip()
+       + theme_classic()
+       + theme(axis.title.x = element_blank(),
+               axis.title.y = element_blank())
+       #+ xlab("Annual Revenue")
+       #+ ylab("Number of Employees")
+       + ggtitle("Analysis for all Industries")))}
+     
+    else{
+      (ggplotly(ggplot(filter(dta1,Industry==input$selectInput))
+                + geom_boxplot(aes(x=AnnualRevenue,y=Staff))
+                + facet_grid(.~SquareFt)
+                + scale_y_log10()
+                + coord_flip()
+                + theme_classic()
+                + theme(axis.title.y = element_blank(),
+                        axis.title.x = element_blank())
+                + ggtitle(paste("Analysis for",input$selectInput,sep = " "))))
+    }#endifelse
+)#endRenderPlotly
   
-  
-  
-  
-  
-  
-  
-  
+ #Adding Number Converter 
+  output$num <- renderPrint(10^(input$num))
 }#server
 
 shinyApp(ui=ui,server=server)
