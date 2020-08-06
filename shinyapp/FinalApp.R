@@ -7,6 +7,7 @@ library(tibble)
 library(readr)
 library(sunburstR)
 library(plotly)
+library(plyr)
 
 ### Raw data
 DTG_All_Applicants <- read_csv("~/Documents/OBIAA_Summary/DTG-All Applicants.csv")
@@ -21,11 +22,10 @@ dta1 <- (dta %>%
                   `Annual Revenue`,`Square Feet`, Staff, Status,`Digital Marketing $`,
                   Website, Software, `Digital Training`, Hardware, DSS,Region)
          %>% mutate(Currency = gsub("[\\$,]","",Currency))
-         %>% rename(
-           DigitalMarket = `Digital Marketing $`,
-           DigitalTrain = `Digital Training`,
-           AnnualRevenue = `Annual Revenue`,
-           SquareFt = `Square Feet`)
+         %>% rename(c(DigitalMarket = `Digital Marketing $`,
+                      DigitalTrain = `Digital Training`,
+                      AnnualRevenue = `Annual Revenue`,
+                      SquareFt = `Square Feet`))
          %>% mutate(DigitalMarket = as.numeric(gsub("[\\$,]","",DigitalMarket)),
                     DigitalTrain = as.numeric(gsub("[\\$,]","",DigitalTrain)),
                     Website = as.numeric(gsub("[\\$,]","",Website)),
@@ -118,7 +118,8 @@ tbl <- (dta1 %>%
 #tbl1 <- datatable(tbl)
 
 options(shiny.trace = TRUE)
-#Define UI
+
+###########Define UI
 ui <- fluidPage(
   theme=shinytheme("simplex"), #theme
   titlePanel("OBIAA Summary Shiny Application"), #title
@@ -142,7 +143,7 @@ ui <- fluidPage(
               column(11, dataTableOutput("tbl1"))
               ),#endTab2,
       
-    tabPanel("Distribution of Staffing",
+    tabPanel("Distribution of Staff Part 1",
     #Add boxplot
     fluidRow(
     headerPanel("Distribution of Staffing by Revenue and Square Footage"),
@@ -172,20 +173,70 @@ ui <- fluidPage(
            )
     ),
     fluidRow(
-      column(11.10,offset = 0.75,
+      column(11,offset = 0.75,
         plotlyOutput("boxplot"))
     ),
     fluidRow(
+    column(3,
     numericInput("num","Convert Log Scale to Linear Scale:",value = 0),
-    verbatimTextOutput("num")
+    verbatimTextOutput("num"))
     )
-  )#TabPanel3
-    )#tabsetPanel
-
+  ),#TabPanel3
   
-)#fluidpage
+  tabPanel("Distribution of Staff Part 2",
+  sidebarLayout( 
+    
+      sidebarPanel(
+              selectInput("selectInd",
+                          h4("Select an Industry:"),
+                          choices = list("Accomodations",
+                                         "Art Gallery",
+                                         "Beauty",
+                                         "Business Services",
+                                         "Cafe",
+                                         "Consumer Services",
+                                         "Education",
+                                         "Entertainment",
+                                         "Financial Services",
+                                         "Healthy and Beauty",
+                                         "Health and Wellness", 
+                                         "Medical Services",
+                                         "Music",
+                                         "Recreation",
+                                         "Restaurant",
+                                         "Retail",
+                                         "Specialty Foods"),
+                          selected = "Accomodations"),#checkboxGroupInput 
+              
+              selectInput("selectRev", 
+                          h4("Select Annual Revenue Range:"),
+                          choices=list("Up to $500K",
+                                       "$500K to $1M",
+                                       "$1M to $1.5M",
+                                       "$1.5M to $2M",
+                                       "$2M to $3M",
+                                       "$3M to $5M",
+                                       "$5M to $7M",
+                                       "$7M to $10M",
+                                       "$15M to $20M")), 
+            selectInput("selectSize",
+                        h4("Select Square Footage:"),
+                        choices=list("500 - 1000 Square Ft",
+                                     "1001 - 2000 Square Ft",
+                                     "2001 - 3000 Square Ft",
+                                     "3000 + Square Ft")),
+            
+            h4("Median Number of Staffs:"),
+            textOutput("median"),
+            h4("Average Number of Staffs:"),
+            textOutput("mean")),
+    
+      mainPanel(
+        dataTableOutput("tbl2"))
+      )#sideBarLayout
+  )))#tab4
 
-#Define Server
+#############Define Server
 server <- function(input,output){
   #Adding Sunburst Plot 
   output$s2b <- renderSund2b({
@@ -228,6 +279,27 @@ server <- function(input,output){
   
  #Adding Number Converter 
   output$num <- renderPrint(10^(input$num))
+  
+  #Add filter table 
+  output$tbl2 <- renderDataTable(
+    dta2 <- (dta1 %>% select(Industry, AnnualRevenue, SquareFt,Staff)
+             %>% filter(Industry == input$selectInd, 
+                        AnnualRevenue == input$selectRev,
+                        SquareFt == input$selectSize)))
+  
+  #Add medium and mean 
+  output$median <- renderText(as.numeric((dta1 %>% select(Industry, AnnualRevenue, SquareFt,Staff)
+                                            %>% filter(Industry == input$selectInd, 
+                                                       AnnualRevenue == input$selectRev,
+                                                       SquareFt == input$selectSize)
+                                            %>% summarise(median(Staff)))))
+  
+  
+  output$mean <- renderText(as.numeric((dta1 %>% select(Industry, AnnualRevenue, SquareFt,Staff)
+                           %>% filter(Industry == input$selectInd, 
+                                      AnnualRevenue == input$selectRev,
+                                      SquareFt == input$selectSize)
+                           %>% summarise(mean(Staff)))))
 }#server
 
 shinyApp(ui=ui,server=server)
