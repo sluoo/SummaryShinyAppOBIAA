@@ -121,8 +121,8 @@ options(shiny.trace = TRUE)
 
 ###########Define UI
 ui <- fluidPage(
-  theme=shinytheme("simplex"), #theme
-  titlePanel("OBIAA Summary Shiny Application"), #title
+  theme=shinytheme("flatly"), #theme
+  titlePanel(h1("Ontario Digital Main Street Summary Analysis")), #title
   tabsetPanel(
     tabPanel("Basic Summary",
              HTML(#adding text 
@@ -184,8 +184,8 @@ ui <- fluidPage(
   ),#TabPanel3
   
   tabPanel("Distribution of Staff Part 2",
+    headerPanel("Distribution of Staffing by Revenue and Square Footage"),
   sidebarLayout( 
-    
       sidebarPanel(
               selectInput("selectInd",
                           h4("Select an Industry:"),
@@ -225,12 +225,17 @@ ui <- fluidPage(
                                      "1001 - 2000 Square Ft",
                                      "2001 - 3000 Square Ft",
                                      "3000 + Square Ft")),
-            
-            h4("Median Number of Staffs:"),
+            h4("Total Number of Businesses within Industry:"),
+            textOutput("totalBiz"),
+            h4("Number of Businesses within Field Selection:"),
+            textOutput("numbiz"),
+            h4("Median Number of Staffs within Field Selection:"),
             textOutput("median"),
-            h4("Average Number of Staffs:"),
+            h4("Average Number of Staffs within Field Selection:"),
             textOutput("mean")),
-    
+            #h4("Average Number of Staffs for all industries:"),
+            #textOutput("meanAll")),
+          
       mainPanel(
         dataTableOutput("tbl2"))
       )#sideBarLayout
@@ -300,10 +305,16 @@ server <- function(input,output){
                                       AnnualRevenue == input$selectRev,
                                       SquareFt == input$selectSize)
                            %>% summarise(mean(Staff)))))
+  
+  output$numbiz <- renderText(as.numeric(dim(filter(dta1,Industry==input$selectInd,
+                                                    AnnualRevenue==input$selectRev,
+                                                    SquareFt==input$selectSize)))[1])
+  
+  output$totalBiz <- renderText(as.numeric(dim(filter(dta1,Industry==input$selectInd)))[1])
+  #output$meanAll <- renderText(as.numeric(dta1 %>% select(Staff) %>% summarise(mean(Staff))))
 }#server
 
 shinyApp(ui=ui,server=server)
-
 
 
 
