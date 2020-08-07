@@ -8,6 +8,7 @@ library(readr)
 library(sunburstR)
 library(plotly)
 library(plyr)
+library(dplyr)
 
 ### Raw data
 DTG_All_Applicants <- read_csv("~/Documents/OBIAA_Summary/DTG-All Applicants.csv")
@@ -22,10 +23,10 @@ dta1 <- (dta %>%
                   `Annual Revenue`,`Square Feet`, Staff, Status,`Digital Marketing $`,
                   Website, Software, `Digital Training`, Hardware, DSS,Region)
          %>% mutate(Currency = gsub("[\\$,]","",Currency))
-         %>% rename(c(DigitalMarket = `Digital Marketing $`,
+         %>% rename(DigitalMarket = `Digital Marketing $`,
                       DigitalTrain = `Digital Training`,
                       AnnualRevenue = `Annual Revenue`,
-                      SquareFt = `Square Feet`))
+                      SquareFt = `Square Feet`)
          %>% mutate(DigitalMarket = as.numeric(gsub("[\\$,]","",DigitalMarket)),
                     DigitalTrain = as.numeric(gsub("[\\$,]","",DigitalTrain)),
                     Website = as.numeric(gsub("[\\$,]","",Website)),
