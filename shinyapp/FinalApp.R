@@ -7,8 +7,8 @@ library(tibble)
 library(readr)
 library(sunburstR)
 library(plotly)
-library(plyr)
 library(dplyr)
+
 
 ### Raw data
 DTG_All_Applicants <- read_csv("~/Documents/OBIAA_Summary/DTG-All Applicants.csv")
@@ -63,25 +63,37 @@ dta1 <- mutate(dta1, SquareFt=fct_relevel(dta1$SquareFt,c(
 
 ##Relabel
 #Relabel 
-dta1$AnnualRevenue <-mapvalues(dta1$AnnualRevenue,
-                               from=c("Up to $500,000",
-                                      "$500,000 to $1 Million",
-                                      "$1 Million to $1.5 Million",
-                                      "$1.5 Million to $2 Million",
-                                      "$2 Million to $3 Million",
-                                      "$3 Million to $5 Million",
-                                      "$5 Million to $7 Million",
-                                      "$7 Million to $10 Million",
-                                      "$15 Million to $20 Million"),
-                               to = c("Up to $500K",
-                                      "$500K to $1M",
-                                      "$1M to $1.5M",
-                                      "$1.5M to $2M",
-                                      "$2M to $3M",
-                                      "$3M to $5M",
-                                      "$5M to $7M",
-                                      "$7M to $10M",
-                                      "$15M to $20M"))
+#dta1$AnnualRevenue <-mapvalues(dta1$AnnualRevenue,
+                               # from=c("Up to $500,000",
+                               #        "$500,000 to $1 Million",
+                               #        "$1 Million to $1.5 Million",
+                               #        "$1.5 Million to $2 Million",
+                               #        "$2 Million to $3 Million",
+                               #        "$3 Million to $5 Million",
+                               #        "$5 Million to $7 Million",
+                               #        "$7 Million to $10 Million",
+                               #        "$15 Million to $20 Million"),
+                               # to = c("Up to $500K" = "Up to $500,000",
+                               #        "$500K to $1M" = "$500,000 to $1 Million",
+                               #        "$1M to $1.5M" = "$1 Million to $1.5 Million",
+                               #        "$1.5M to $2M" = "$1.5 Million to $2 Million",
+                               #        "$2M to $3M" = "$2 Million to $3 Million",
+                               #        "$3M to $5M" = "$3 Million to $5 Million",
+                               #        "$5M to $7M"="$5 Million to $7 Million",
+                               #        "$7M to $10M"="$7 Million to $10 Million" ,
+                               #        "$15M to $20M"= "$15 Million to $20 Million"))
+
+
+dta1 <- (dta1 %>% mutate(AnnualRevenue = (dta1$AnnualRevenue %>% 
+                                            fct_recode("Up to $500K" = "Up to $500,000",
+                                                       "$500K to $1M" = "$500,000 to $1 Million",
+                                                       "$1M to $1.5M" = "$1 Million to $1.5 Million",
+                                                       "$1.5M to $2M" = "$1.5 Million to $2 Million",
+                                                       "$2M to $3M" = "$2 Million to $3 Million",
+                                                       "$3M to $5M" = "$3 Million to $5 Million",
+                                                       "$5M to $7M"="$5 Million to $7 Million",
+                                                       "$7M to $10M"="$7 Million to $10 Million" ,
+                                                       "$15M to $20M"= "$15 Million to $20 Million"))))
 
 
 ###Sunburst Plot 
