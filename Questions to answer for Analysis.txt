@@ -4,5 +4,4 @@ Questions wish to explore....
 2. Which indusitries recieved the most/least grants? 
 3. Number of grants per municipality? (Ratio>??)
 4. Is the amount of revenue generated associated to whether or not grant is received? 
-  -That's a dumb question
 5. Revenue vs. # of staff 
